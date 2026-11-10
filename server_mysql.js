@@ -41,6 +41,23 @@ connection.connect((err) => {
           return;
         }
       } );
+
+    const createTableRoupasQuery = `
+        CREATE TABLE IF NOT EXISTS roupas (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nome VARCHAR(255) NOT NULL,
+        preco DECIMAL(10, 2) NOT NULL,
+        tamanho VARCHAR(50) NOT NULL,
+        estilo VARCHAR(100) NOT NULL,
+        colecao VARCHAR(100) NOT NULL
+        )`;
+
+    connection.query(createTableRoupasQuery, (err) => {
+    if (err) {
+        console.error('Erro ao criar tabela: ', err.stack);
+        return; 
+    }
+});
 });
 
 app.get('/alunos', (req, res) => {
@@ -52,7 +69,20 @@ app.get('/alunos', (req, res) => {
   });
 });
 
+app.post('/roupas', (req, res) => {
+  const { nome, preco, tamanho, estilo, colecao } = req.body;
+
+  const query = 'INSERT INTO roupas (nome, preco, tamanho, estilo, colecao) VALUES (?, ?, ?, ?, ?)';
+  
+  connection.query(query, [nome, preco, tamanho, estilo, colecao], (err, results) => {
+    if (err) {
+      return res.status(500).json({ erro: 'Erro ao cadastrar roupa' });
+    }
+    res.status(201).json({ mensagem: 'Roupa cadastrada com sucesso', id: results.insertId });
+  });
+});
 
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}/`);
 });
+
