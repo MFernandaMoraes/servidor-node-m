@@ -56,8 +56,37 @@ connection.connect((err) => {
     if (err) {
         console.error('Erro ao criar tabela: ', err.stack);
         return; 
-    }
-});
+      }
+    });
+
+    // Cria a tabela 'estilo' caso ela não exista (RF02)
+    const createTableEstiloQuery = `
+      CREATE TABLE IF NOT EXISTS estilo (
+        id_estilo BIGINT AUTO_INCREMENT PRIMARY KEY,
+        nome VARCHAR(100) NOT NULL,
+        descricao TEXT
+      )`;
+      connection.query( createTableEstiloQuery, (err) => {
+        if (err) {
+          console.error('Erro ao criar tabela: ', err.stack );
+          return;
+        }
+      } );
+
+    // Cria a tabela 'colecao' caso ela não exista (RF02)
+    const createTableColecaoQuery = `
+      CREATE TABLE IF NOT EXISTS colecao (
+        id_colecao BIGINT AUTO_INCREMENT PRIMARY KEY,
+        nome VARCHAR(150) NOT NULL,
+        estacao VARCHAR(50),
+        ano INT NOT NULL
+      )`;
+      connection.query( createTableColecaoQuery, (err) => {
+        if (err) {
+          console.error('Erro ao criar tabela: ', err.stack );
+          return;
+        }
+      });
 });
 
 app.get('/alunos', (req, res) => {
@@ -79,6 +108,50 @@ app.post('/roupas', (req, res) => {
       return res.status(500).json({ erro: 'Erro ao cadastrar roupa' });
     }
     res.status(201).json({ mensagem: 'Roupa cadastrada com sucesso', id: results.insertId });
+  });
+});
+
+app.get('/estilos', (req, res) => {
+  connection.query('SELECT * FROM estilo', (err, results) => {
+    if (err) {
+      return res.status(500).json({ erro: 'Erro ao buscar estilos' });
+    }
+    res.json(results);
+  });
+});
+
+app.post('/estilos', (req, res) => {
+  const { nome, descricao } = req.body;
+
+  const query = 'INSERT INTO estilo (nome, descricao) VALUES (?, ?)';
+
+  connection.query(query, [nome, descricao], (err, results) => {
+    if (err) {
+      return res.status(500).json({ erro: 'Erro ao cadastrar estilo' });
+    }
+    res.status(201).json({ mensagem: 'Estilo cadastrado com sucesso', id: results.insertId });
+  });
+});
+
+app.get('/colecoes', (req, res) => {
+  connection.query('SELECT * FROM colecao', (err, results) => {
+    if (err) {
+      return res.status(500).json({ erro: 'Erro ao buscar coleções' });
+    }
+    res.json(results);
+  });
+});
+
+app.post('/colecoes', (req, res) => {
+  const { nome, estacao, ano } = req.body;
+
+  const query = 'INSERT INTO colecao (nome, estacao, ano) VALUES (?, ?, ?)';
+
+  connection.query(query, [nome, estacao, ano], (err, results) => {
+    if (err) {
+      return res.status(500).json({ erro: 'Erro ao cadastrar coleção' });
+    }
+    res.status(201).json({ mensagem: 'Coleção cadastrada com sucesso', id: results.insertId });
   });
 });
 
